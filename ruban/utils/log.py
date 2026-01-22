@@ -16,8 +16,8 @@ from logging.handlers import TimedRotatingFileHandler
 from colorama import Fore, Back, Style
 from collections import OrderedDict
 
-from utils.util import first_or_none, get_program_name, ensure_dir
-from config import APP_NAME
+from .util import first_or_none, get_program_name, ensure_dir
+from ruban.config import APP_NAME
 
 
 # 默认日志格式

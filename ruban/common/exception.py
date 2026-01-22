@@ -10,7 +10,7 @@ import inspect
 import traceback
 import re
 from flask import request
-# from code import logger
+
 
 MSG_FORMAT = {
     10000: u'Undefined Exception',

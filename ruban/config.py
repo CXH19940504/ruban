@@ -25,7 +25,7 @@ SQLALCHEMY_DATABASE_URI = "sqlite+pysqlite:///:memory:"
 
 SQL_DEBUG = False
 FILENAME = 'ruban_server'
-LOGGER_PATH = 'logs'
+LOGGER_PATH = '../logs'
 
 
 __set_from_environ()

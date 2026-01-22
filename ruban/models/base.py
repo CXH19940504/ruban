@@ -6,10 +6,10 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.dialects.mysql import insert
 from flask import g
 
-import config
-from utils.log import get_logger
-from utils.util import pop_key_default
-from common import exce
+from ruban import config
+from ruban.utils.log import get_logger
+from ruban.utils.util import pop_key_default
+from ruban.common import exce
 
 
 logger = get_logger(__name__)

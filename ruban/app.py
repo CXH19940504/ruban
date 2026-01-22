@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding=utf-8 -*-
 
-import config
-from flask import (
-    Flask, g
-)
-from common import exce
-from models.base import get_engine
+from flask import Flask, g
 from sqlalchemy.orm import sessionmaker, scoped_session
+from . import config
+from .common import exce
+from .models import get_engine
 
 
 app_name = getattr(config, 'APP_NAME', __name__)

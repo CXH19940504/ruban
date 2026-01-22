@@ -1,7 +1,8 @@
-from sqlalchemy import create_engine, text, URL
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
-from config import SQLALCHEMY_DATABASE_URI
+from ruban.config import SQLALCHEMY_DATABASE_URI
 
+SQLALCHEMY_DATABASE_URI = "mysql+pymysql://api_test:APItest123@rm-bp1l6ove2344qcbw5eo.mysql.rds.aliyuncs.com:3306/digikey_db"
 # an Engine, which the Session will use for connection
 # resources
 engine = create_engine(SQLALCHEMY_DATABASE_URI)
