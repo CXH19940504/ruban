@@ -11,7 +11,10 @@ import http.client as httplib
 from flask import jsonify
 from werkzeug.exceptions import HTTPException
 from common.exception import RestException, register_exception
-from ruban import logger
+from utils.log import get_logger
+
+
+logger = get_logger(__name__)
 
 ERR_UNKNOWN = 10000
 

@@ -1,8 +1,7 @@
 from sqlalchemy import Integer, String, Date, insert
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import Session
-from ruban.models.base import BaseModel, get_engine
-from flask import g
+from models.base import BaseModel, get_engine
 
 
 # 客户端配置模型（对应 dk_client 表）
