@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session
 from ruban.models import BaseModel, get_engine
 
 
-# 客户端配置模型（对应 dk_client 表）
+# 客户端配置模型（对应 api_conf 表）
 class DkClient(BaseModel):
-    __tablename__ = 'dk_client'
+    __tablename__ = 'api_conf'
     __key_field__ = 'name'
     __search_key__ = {'name'}
 

@@ -9,6 +9,6 @@ engine = create_engine(SQLALCHEMY_DATABASE_URI)
 
 # create session and add objects
 with Session(engine) as session:
-    res = session.execute(text("select * from dk_client"))
+    res = session.execute(text("select * from api_conf"))
     session.commit()
     print(res)

@@ -1,7 +1,7 @@
 import inspect
 import re
 import traceback
-from sqlalchemy import Date, DateTime, Numeric, create_engine, desc, asc, or_, and_, not_
+from sqlalchemy import Date, DateTime, Numeric, create_engine, desc, asc, or_, and_, not_, column
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.dialects.mysql import insert
 from flask import g
@@ -213,7 +213,6 @@ class BaseModel(DeclarativeBase):
         session = get_session()
 
         filter_ = cls.format_filter_params(params)
-        filter_.extend(cls.auth_filter())
         if _search_key:
             if not getattr(cls, '__search_key__', None):
                 raise exce.ParamsError(
