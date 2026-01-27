@@ -11,7 +11,7 @@ import json
 import logging
 from six import string_types
 from flask import request
-from logging.handlers import TimedRotatingFileHandler
+from logging.handlers import TimedRotatingFileHandler, RotatingFileHandler
 
 from colorama import Fore, Back, Style
 from collections import OrderedDict
@@ -201,13 +201,15 @@ class LoggerMaintainer(object):
 
         if filename not in self.file_handlers:
             file_handler = TimedRotatingFileHandler(
-                filename, when='D', interval=1, backupCount=30, encoding='utf-8', delay=True
+                filename, when='D', interval=1, backupCount=30, encoding='utf-8'
             )
 
             self.file_handlers[filename] = file_handler
 
             if level is not None:
                 file_handler.setLevel(level)
+                if level != logging.DEBUG:
+                    file_handler.addFilter(LevelFilter(upper=level))
 
             self.add_handler(file_handler)
 
@@ -273,6 +275,8 @@ class LoggerMaintainer(object):
             path = os.path.abspath(path)
             ensure_dir(path)
             self.add_file_handler(path, name, level=file_level)
+            if file_level > logging.DEBUG:
+                self.add_file_handler(path, default_name, level=logging.ERROR)
 
         return self.logger
 

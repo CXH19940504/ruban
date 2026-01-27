@@ -16,6 +16,7 @@ from ruban.utils.log import get_logger
 
 logger = get_logger(__name__)
 
+
 ERR_UNKNOWN = 10000
 
 

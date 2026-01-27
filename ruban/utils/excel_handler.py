@@ -2,7 +2,7 @@ import openpyxl
 import logging
 import os
 from datetime import datetime
-from .log import get_logger
+from ruban.utils.log import get_logger
 
 
 logger = get_logger(__name__)

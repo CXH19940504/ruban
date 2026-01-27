@@ -7,8 +7,8 @@ from sqlalchemy.dialects.mysql import insert
 from flask import g
 
 from ruban import config
-from ruban.utils.log import get_logger
 from ruban.utils.util import pop_key_default
+from ruban.utils.log import get_logger
 from ruban.common import exce
 
 
