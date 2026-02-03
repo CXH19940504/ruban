@@ -27,6 +27,7 @@ SQLALCHEMY_DATABASE_URI = "mysql+pymysql://api_test:APItest123@rm-bp1l6ove2344qc
 SQL_DEBUG = False
 FILENAME = 'ruban_server'
 LOGGER_PATH = '../logs'
+NODE_NAME = 'N1'
 
 
 __set_from_environ()
