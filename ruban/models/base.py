@@ -2,7 +2,7 @@ import inspect
 import re
 import traceback
 from sqlalchemy import Date, DateTime, Numeric, create_engine, desc, asc, or_, and_, not_, column
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.dialects.mysql import insert
 from flask import g
 
@@ -23,8 +23,12 @@ def get_engine(db=None):
     return engine
 
 
-def get_session():
-    return g._session
+def get_session(app_global=True):
+    if app_global:
+        return g._session
+    else:
+        Session = sessionmaker(get_engine())
+        return Session()
 
 
 class BaseModel(DeclarativeBase):
