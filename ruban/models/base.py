@@ -19,7 +19,8 @@ def get_engine(db=None):
     db = db or getattr(config,
                        'SQLALCHEMY_DATABASE_URI', 'sqlite:///:memory:')
     echo = True if config.SQL_DEBUG else False
-    engine = create_engine(db, echo=echo, pool_recycle=3600, pool_pre_ping=True)
+    engine = create_engine(db, echo=echo, pool_recycle=3600, pool_pre_ping=True,
+                           pool_size=20, max_overflow=10, pool_timeout=30)
     return engine
 
 

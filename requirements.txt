@@ -5,3 +5,4 @@ pymysql==1.1.2
 openpyxl==3.0.9
 colorama>=0.4.6
 requests==2.32.5
+alibabacloud_dingtalk==2.2.38
