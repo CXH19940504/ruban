@@ -1,0 +1,137 @@
+import configparser
+import enum
+import types
+from typing import Dict, Any
+from ruban import config, logger
+
+
+class ConditionType:
+
+    @classmethod
+    def match_value(cls, x0, old_values, *args):
+        if old_values is None:
+            return True
+        elif isinstance(old_values, list):
+            return x0 in old_values
+        else:
+            return x0 == old_values
+
+    @classmethod
+    def change_from_to(cls, x0, x1, old_value, new_value, *args):
+        if x0 == x1:
+            return False
+        return cls.match_value(x0, old_value) and cls.match_value(x1, new_value)
+
+    @classmethod
+    def increase(cls, x0, x1, old_value, new_value, compare_value):
+        if not cls.match_value(x0, old_value) or not cls.match_value(x1, new_value):
+            return False
+        if not compare_value:
+            return x0 < x1
+        else:
+            return x1 - x0 > compare_value
+
+
+class Condition:
+    """触发条件"""
+
+    def __init__(self, conf):
+        self.target_field = conf.get("target_field")  # 监控的字段（last_uantity/status）
+        if not self.target_field:
+            return
+        self.condition_type = conf.get('condition_type')
+        self.old_value = self._convert_value(conf.get("old_value"))
+        self.new_value = self._convert_value(conf.get("new_value"))
+        self.compare_value = self._convert_value(conf.get("compare_value"))
+
+    def _convert_value(self, value: str) -> Any:
+        """将配置文件中的字符串值转换为对应类型（int/float/str）"""
+        if value is None:
+            return None
+        if ',' in value:
+            return [self._convert_value(v.strip()) for v in value.split(",")]
+        else:
+            try:
+                return int(value)
+            except ValueError:
+                try:
+                    return float(value)
+                except ValueError:
+                    return value
+
+    def is_matched(self, old_data: Dict[str, Any], new_data: Dict[str, Any]) -> bool:
+        """
+        判断当前条件是否满足
+        :param old_data:
+        :param new_data:
+        :return:
+        """
+        # 检查目标字段是否存在于新旧数据中
+        if self.target_field not in old_data or self.target_field not in new_data:
+            return False
+        old_val = old_data[self.target_field]
+        new_val = new_data[self.target_field]
+        _func = getattr(ConditionType, self.condition_type)
+        return _func(old_val, new_val, self.old_value, self.new_value, self.compare_value)
+
+
+class AlertRule:
+    """告警规则类，封装单条规则的属性和匹配逻辑"""
+
+    def __init__(self, rule_id: str, conf: Dict[str, str]):
+        self.rule_id = rule_id  # 规则ID（如 rule_1）
+        self.name = conf["name"]  # 规则名称
+        self.description = conf["description"]  # 告警描述
+        self.conditions = []  # 条件类型
+        self.add_condition(conf)
+
+    def add_condition(self, cond_conf: Dict[str, str]):
+        _condition = Condition(cond_conf)
+        if _condition.target_field:
+            self.conditions.append(_condition)
+
+    def is_triggered(self, old_data: Dict[str, Any], new_data: Dict[str, Any]) -> bool:
+        """
+        判断当前规则是否被触发
+        :param old_data: 变化前的字段值（如 {"last_quantity":0, "status":0}）
+        :param new_data: 变化后的字段值（如 {"last_quantity":10, "status":3}）
+        :return: 是否触发告警
+        """
+        for _condition in self.conditions:
+            _matched = _condition.is_matched(old_data, new_data)
+            if not _matched:
+                return False
+        return True
+
+
+class AlertTrigger:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            _config = configparser.ConfigParser()
+            _config.read(config.ALERT_CONF, encoding="utf-8")
+
+            cls._instance.alert_rules = {}
+            # 遍历所有规则分段（以 rule_ 开头）
+            for section in _config.sections():
+                if section.startswith("rule_"):
+                    split_con = section.split('|')
+                    if len(split_con) == 1:
+                        try:
+                            rule = AlertRule(section, dict(_config[section]))
+                            cls._instance.alert_rules[section] = rule
+                        except Exception as e:
+                            logger.info(f"{section}配置解析失败：{repr(e)}")
+                    else:
+                        rule_id = split_con[0]
+                        cls._instance.alert_rules[rule_id].add_condition(dict(_config[section]))
+
+        return cls._instance
+
+    def check_alerts(self, old_data: Dict[str, Any], new_data: Dict[str, Any]):
+        """检查所有规则，返回触发的告警列表"""
+        for rule in self.alert_rules.values():
+            if rule.is_triggered(old_data, new_data):
+                return rule
