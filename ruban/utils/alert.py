@@ -1,8 +1,11 @@
 import configparser
-import enum
-import types
+import logging
 from typing import Dict, Any
-from ruban import config, logger
+from ruban import config, get_logger
+
+
+alert_logger = get_logger(
+    'alert', level=logging.DEBUG, path=config.LOGGER_PATH, filename='alert')
 
 
 class ConditionType:
@@ -80,8 +83,9 @@ class AlertRule:
 
     def __init__(self, rule_id: str, conf: Dict[str, str]):
         self.rule_id = rule_id  # 规则ID（如 rule_1）
-        self.name = conf["name"]  # 规则名称
-        self.description = conf["description"]  # 告警描述
+        self.name = conf["name"].strip()  # 规则名称
+        self.description = conf["description"].strip()  # 告警描述
+        self.monitor_status = int(conf["monitor_status"].strip())  # 告警类型
         self.conditions = []  # 条件类型
         self.add_condition(conf)
 
@@ -93,10 +97,12 @@ class AlertRule:
     def is_triggered(self, old_data: Dict[str, Any], new_data: Dict[str, Any]) -> bool:
         """
         判断当前规则是否被触发
-        :param old_data: 变化前的字段值（如 {"last_quantity":0, "status":0}）
-        :param new_data: 变化后的字段值（如 {"last_quantity":10, "status":3}）
+        :param old_data: 变化前的字段值（如 {"quantity":0, "status":0}）
+        :param new_data: 变化后的字段值（如 {"quantity":10, "status":3}）
         :return: 是否触发告警
         """
+        if not self.monitor_status == new_data['monitor_status']:
+            return False
         for _condition in self.conditions:
             _matched = _condition.is_matched(old_data, new_data)
             if not _matched:
@@ -123,7 +129,7 @@ class AlertTrigger:
                             rule = AlertRule(section, dict(_config[section]))
                             cls._instance.alert_rules[section] = rule
                         except Exception as e:
-                            logger.info(f"{section}配置解析失败：{repr(e)}")
+                            alert_logger.info(f"{section}配置解析失败：{repr(e)}")
                     else:
                         rule_id = split_con[0]
                         cls._instance.alert_rules[rule_id].add_condition(dict(_config[section]))
@@ -134,4 +140,8 @@ class AlertTrigger:
         """检查所有规则，返回触发的告警列表"""
         for rule in self.alert_rules.values():
             if rule.is_triggered(old_data, new_data):
+                alert_logger.info('触发告警：%s, %s -> %s', rule.name, old_data, new_data)
                 return rule
+
+
+alert_trigger = AlertTrigger()

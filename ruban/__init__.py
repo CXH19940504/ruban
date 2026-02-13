@@ -13,4 +13,4 @@ filename = config.FILENAME
 
 logger = get_logger(__name__, level=log_level, path=path, filename=filename)
 
-__all__ = ["logger", "get_session"]
+__all__ = ["logger", "get_logger", "get_session"]

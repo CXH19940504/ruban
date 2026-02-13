@@ -28,7 +28,7 @@ FILENAME = 'ruban_server'
 LOGGER_PATH = '../logs'
 NODE_NAME = 'N1'
 
-REDIS_URL = 'redis://123redis@121.43.138.251:6379'
+REDIS_URL = 'redis://127.0.0.1:6379'
 ALERT_CONF = '../conf/alert.conf'
 
 __set_from_environ()

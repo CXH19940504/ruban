@@ -1,7 +1,6 @@
-import inspect
 import re
 import traceback
-from sqlalchemy import Date, DateTime, Numeric, create_engine, desc, asc, or_, and_, not_, column
+from sqlalchemy import Date, DateTime, Numeric, create_engine, desc, asc, or_, and_, not_, column, inspect
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.dialects.mysql import insert
 from flask import g
