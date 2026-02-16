@@ -4,6 +4,7 @@ from .utils.log import get_logger
 from .utils.excel_handler import ExcelHandler
 from .common import exce
 from .models.base import get_session
+from .app import app as ruban_app
 
 
 log_level = logging.DEBUG if config.DEBUG else logging.INFO

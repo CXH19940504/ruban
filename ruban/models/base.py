@@ -1,7 +1,7 @@
 import re
 import traceback
 from sqlalchemy import Date, DateTime, Numeric, create_engine, desc, asc, or_, and_, not_, column, inspect
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, sessionmaker, scoped_session
 from sqlalchemy.dialects.mysql import insert
 from flask import g
 
@@ -25,9 +25,11 @@ def get_engine(db=None):
 
 def get_session(app_global=True):
     if app_global:
-        return g._session
-    else:
         Session = sessionmaker(get_engine())
+        return Session()
+        # return g._session
+    else:
+        Session = scoped_session(sessionmaker(get_engine()))
         return Session()
 
 
@@ -207,7 +209,6 @@ class BaseModel(DeclarativeBase):
     @classmethod
     def get_all(cls, params):
         logger.debug('get_all: %r', params)
-        depth = pop_key_default(params, '_expand', 0, int)
         _num = pop_key_default(params, '_num', 10, int)
         _page = pop_key_default(params, '_page', 1, int)
         _direction = pop_key_default(params, '_direction', 'asc', str)
@@ -243,12 +244,11 @@ class BaseModel(DeclarativeBase):
         logger.debug(str(rows))
 
         start = (_page - 1) * _num
-        end = result['total']
         if _num != -1:
-            end = start + _num
+            rows = rows.offset(start).limit(_num)
         result['items'] = [
-            item.as_dict(depth=depth)
-            for item in rows[start: end]
+            item.as_dict()
+            for item in rows
         ]
         return result
 
