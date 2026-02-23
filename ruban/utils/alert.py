@@ -1,6 +1,11 @@
 import configparser
 import logging
 from typing import Dict, Any
+import requests
+import json
+import time
+import base64
+import urllib.parse
 from ruban import config, get_logger
 
 
@@ -85,6 +90,7 @@ class AlertRule:
         self.rule_id = rule_id  # 规则ID（如 rule_1）
         self.name = conf["name"].strip()  # 规则名称
         self.description = conf["description"].strip()  # 告警描述
+        self.webhook = conf.get("webhook", '').strip()  # webhook
         self.monitor_status = int(conf["monitor_status"].strip())  # 告警类型
         self.conditions = []  # 条件类型
         self.add_condition(conf)
@@ -108,6 +114,22 @@ class AlertRule:
             if not _matched:
                 return False
         return True
+
+    def send_msg(self, msg):
+        # Webhook和secret
+        # 生成签名（如启用加签）
+        timestamp = round(time.time() * 1000)
+        url = f"{self.webhook}&timestamp={timestamp}"
+        # 消息内容
+        data = {
+            "msgtype": "text",
+            "text": {"content": msg},
+            "at": {"isAtAll": False}
+        }
+        # 发送请求
+        headers = {"Content-Type": "application/json"}
+        res = requests.post(url, data=json.dumps(data), headers=headers)
+        print(res.text)
 
 
 class AlertTrigger:
