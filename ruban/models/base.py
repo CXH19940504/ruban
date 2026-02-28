@@ -25,9 +25,7 @@ def get_engine(db=None):
 
 def get_session(app_global=True):
     if app_global:
-        Session = sessionmaker(get_engine())
-        return Session()
-        # return g._session
+        return g._session
     else:
         Session = scoped_session(sessionmaker(get_engine()))
         return Session()
@@ -41,7 +39,7 @@ class BaseModel(DeclarativeBase):
         'mysql_collate': 'utf8_bin',
         'keep_existing': True,
     }
-    __json_keys__ = set()
+    __json_keys__ = []
 
     def as_dict_get_value__(self, attr):
         return getattr(self, attr, None)
@@ -69,7 +67,10 @@ class BaseModel(DeclarativeBase):
         ins = inspect(self).mapper
         columns = ins.column_attrs
         dict_data = {}
-        for attr in columns.keys():
+        json_keys = self.__json_keys__
+        if not json_keys:
+            json_keys = columns.keys()
+        for attr in json_keys:
             value = self.as_dict_get_value__(attr)
             value = self.value_field_output_convert(columns, attr, value)
             dict_data[attr] = value

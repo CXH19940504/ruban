@@ -20,7 +20,7 @@ logger = get_logger(__name__)
 ERR_UNKNOWN = 10000
 
 
-@register_exception(400, 40001, u'Request Params Error: {msg}')
+@register_exception(400, 40001, u'{msg}')
 class ParamsError(RestException):
     pass
 
