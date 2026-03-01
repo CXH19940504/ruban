@@ -4,13 +4,19 @@ from typing import Dict, Any
 import requests
 import json
 import time
-import base64
-import urllib.parse
-from ruban import config, get_logger
 
+from digikey_spider.models import BaseMap
+from flask_app.models import Webhook
+from ruban import config, get_logger, get_session
 
 alert_logger = get_logger(
     'alert', level=logging.DEBUG, path=config.LOGGER_PATH, filename='alert')
+
+
+class WebhookMap(BaseMap):
+    item_cls = Webhook
+    map_key = 'monitor_status'
+    sub_map = None
 
 
 class ConditionType:
@@ -23,6 +29,13 @@ class ConditionType:
             return x0 in old_values
         else:
             return x0 == old_values
+
+    @classmethod
+    def match(cls, x0, x1, old_value, new_value, *args):
+        res = True
+        if old_value is not None:
+            res = cls.match_value(x0, old_value)
+        return res and cls.match_value(x1, new_value)
 
     @classmethod
     def change_from_to(cls, x0, x1, old_value, new_value, *args):
@@ -107,7 +120,7 @@ class AlertRule:
         :param new_data: 变化后的字段值（如 {"quantity":10, "status":3}）
         :return: 是否触发告警
         """
-        if not self.monitor_status == new_data['monitor_status']:
+        if not self.monitor_status == old_data['monitor_status']:
             return False
         for _condition in self.conditions:
             _matched = _condition.is_matched(old_data, new_data)
@@ -155,6 +168,12 @@ class AlertTrigger:
                     else:
                         rule_id = split_con[0]
                         cls._instance.alert_rules[rule_id].add_condition(dict(_config[section]))
+            with get_session(False) as db_session:
+                rows = db_session.query(Webhook).filter_by(is_deleted=0).all()
+                webhook_dict = WebhookMap.get_map(rows)
+                for role in cls._instance.alert_rules.values():
+                    if webhook_dict[role.monitor_status]:
+                        role.webhook = webhook_dict[role.monitor_status].url
 
         return cls._instance
 
