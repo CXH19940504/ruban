@@ -6,7 +6,7 @@ import json
 import time
 
 from digikey_spider.models import BaseMap
-from flask_app.models import Webhook
+from ruban.models.models import Webhook
 from ruban import config, get_logger, get_session
 
 alert_logger = get_logger(
