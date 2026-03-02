@@ -1,7 +1,6 @@
 import openpyxl
-import logging
+import shutil
 import os
-from datetime import datetime
 from ruban.utils.log import get_logger
 
 
@@ -142,3 +141,17 @@ class ExcelHandler:
             error_msg = f"写入多列数据到Excel文件时发生错误: {str(e)}"
             logger.error(error_msg, exc_info=True)
             return {'status': 'error', 'message': error_msg}
+
+
+def simple_zip_folder(folder_path, zip_path):
+    """
+    极简方式压缩文件夹（shutil 封装）
+    :param folder_path: 待压缩文件夹
+    :param zip_path: 生成的 zip 文件路径（无需后缀，shutil 会自动加 .zip）
+    """
+    if not os.path.isdir(folder_path):
+        raise FileNotFoundError(f"文件夹不存在：{folder_path}")
+
+    zip_base = os.path.splitext(zip_path)[0]
+    # 核心：压缩文件夹
+    shutil.make_archive(zip_base, 'zip', folder_path)
