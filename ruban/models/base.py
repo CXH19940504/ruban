@@ -161,9 +161,9 @@ class BaseModel(DeclarativeBase):
                 continue
             kmatch = re.match(reg, key)
             if kmatch:
-                key = kmatch.group('key')
+                _key = kmatch.group('key')
             try:
-                key_attr = getattr(cls, key)
+                key_attr = getattr(cls, _key)
             except:
                 raise exce.ParamsError(
                     msg=u'查询参数%s错误' % key)
