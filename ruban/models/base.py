@@ -162,6 +162,8 @@ class BaseModel(DeclarativeBase):
             kmatch = re.match(reg, key)
             if kmatch:
                 _key = kmatch.group('key')
+            else:
+                _key = key
             try:
                 key_attr = getattr(cls, _key)
             except:
