@@ -131,6 +131,9 @@ class AlertRule:
     def send_msg(self, msg):
         # Webhook和secret
         # 生成签名（如启用加签）
+        if not self.webhook:
+            alert_logger.info('发送告警成功：\n%s', msg)
+            return
         timestamp = round(time.time() * 1000)
         url = f"{self.webhook}&timestamp={timestamp}"
         # 消息内容
@@ -141,8 +144,11 @@ class AlertRule:
         }
         # 发送请求
         headers = {"Content-Type": "application/json"}
-        res = requests.post(url, data=json.dumps(data), headers=headers)
-        print(res.text)
+        try:
+            res = requests.post(url, data=json.dumps(data), headers=headers)
+            alert_logger.info('发送告警成功：%s\n%s', res.status_code, msg)
+        except Exception as e:
+            alert_logger.error('发送告警失败：%s\n%s', repr(e), msg)
 
 
 class AlertTrigger:
