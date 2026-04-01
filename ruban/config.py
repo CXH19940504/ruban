@@ -29,6 +29,7 @@ LOGGER_PATH = '../logs'
 NODE_NAME = 'N1'
 
 REDIS_URL = 'redis://127.0.0.1:6379'
+EXPIRE_TIME = 60 * 60 * 24
 ALERT_CONF = '../conf/alert.conf'
 
 __set_from_environ()

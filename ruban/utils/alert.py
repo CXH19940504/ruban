@@ -146,7 +146,11 @@ class AlertRule:
         headers = {"Content-Type": "application/json"}
         try:
             res = requests.post(url, data=json.dumps(data), headers=headers)
-            alert_logger.info('发送告警成功：%s\n%s', res.status_code, msg)
+            data = res.json()
+            if data['errcode']:
+                alert_logger.error('发送告警失败：%s\n%s', data['errmsg'], msg)
+            else:
+                alert_logger.info('发送告警成功：%s\n%s', res.status_code, msg)
         except Exception as e:
             alert_logger.error('发送告警失败：%s\n%s', repr(e), msg)
 
