@@ -5,12 +5,16 @@ import requests
 import json
 import time
 
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
+from urllib3.exceptions import HTTPError, ResponseError
+
 from digikey_spider.models import BaseMap
 from ruban.models.models import Webhook
 from ruban import config, get_logger, get_session
 
 alert_logger = get_logger(
-    'alert', level=logging.DEBUG, path=config.LOGGER_PATH, filename='alert')
+    'alert', level=logging.INFO, path=config.LOGGER_PATH, filename='alert')
 
 
 class WebhookMap(BaseMap):
@@ -107,6 +111,31 @@ class AlertRule:
         self.monitor_status = int(conf["monitor_status"].strip())  # 告警类型
         self.conditions = []  # 条件类型
         self.add_condition(conf)
+        self.session = self._create_retry_session()
+
+    def _create_retry_session(self):
+        """创建带重试 + 连接池的 requests Session"""
+        session = requests.Session()
+        # 重试策略
+        retry_strategy = Retry(
+            total=3,  # 总共重试 3 次
+            backoff_factor=1,  # 重试间隔：1s → 2s → 4s 指数退避
+            allowed_methods=["POST"],  # 允许 POST 重试
+            # 需要重试的状态码
+            status_forcelist=[429, 500, 502, 503, 504],
+            connect=2,  # 连接超时重试次数
+            backoff_jitter=3,
+            retry_after_max=300
+        )
+        # 连接池配置（高并发不报错）
+        adapter = HTTPAdapter(
+            max_retries=retry_strategy,
+            pool_connections=10,  # 连接池数量
+            pool_maxsize=100  # 每个域名最大连接数
+        )
+        session.mount("https://", adapter)
+        session.mount("http://", adapter)
+        return session
 
     def add_condition(self, cond_conf: Dict[str, str]):
         _condition = Condition(cond_conf)
@@ -145,14 +174,25 @@ class AlertRule:
         # 发送请求
         headers = {"Content-Type": "application/json"}
         try:
-            res = requests.post(url, data=json.dumps(data), headers=headers)
+
+            # 使用带连接池的 session 发送
+            res = self.session.post(
+                url,
+                data=json.dumps(data),
+                headers=headers,
+                timeout=(5, 15)  # 连接超时5s，读取超时15s
+            )
+            # 处理 429 / 504 等 HTTP 状态码
+            if res.status_code == 429 or res.status_code >= 500:
+                raise ResponseError(res.status_code)
             data = res.json()
-            if data['errcode']:
-                alert_logger.error('发送告警失败：%s\n%s', data['errmsg'], msg)
+            if data.get('errcode'):
+                raise ResponseError(data['errmsg'])
             else:
                 alert_logger.info('发送告警成功：%s\n%s', res.status_code, msg)
         except Exception as e:
             alert_logger.error('发送告警失败：%s\n%s', repr(e), msg)
+            raise
 
 
 class AlertTrigger:
