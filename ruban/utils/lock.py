@@ -4,7 +4,15 @@ import uuid
 
 from ruban.config import REDIS_URL
 
-redis_client = redis.from_url(f"{REDIS_URL}/2", decode_responses=True)
+redis_client = redis.from_url(
+    f"{REDIS_URL}/2", decode_responses=True,
+    socket_timeout=5,          # 读写超时 5s
+    socket_connect_timeout=3,  # 连接超时 3s
+    socket_keepalive=True,     # 开启 TCP keepalive
+    health_check_interval=30,  # 健康检查 30s
+    retry_on_timeout=True,     # 超时自动重试
+    max_connections=100,
+)
 
 
 class RedisDistributedLock:
