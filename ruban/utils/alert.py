@@ -7,7 +7,7 @@ import time
 
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
-from urllib3.exceptions import HTTPError, ResponseError
+from urllib3.exceptions import ResponseError
 
 from digikey_spider.models import BaseMap
 from ruban.models.models import Webhook
@@ -55,6 +55,15 @@ class ConditionType:
             return x0 < x1
         else:
             return x1 - x0 > compare_value
+
+    @classmethod
+    def decrease(cls, x0, x1, old_value, new_value, compare_value):
+        if not cls.match_value(x0, old_value) or not cls.match_value(x1, new_value):
+            return False
+        if not compare_value:
+            return x0 > x1
+        else:
+            return x0 - x1 > compare_value
 
 
 class Condition:
