@@ -18,8 +18,8 @@ def get_engine(db=None):
     db = db or getattr(config,
                        'SQLALCHEMY_DATABASE_URI', 'sqlite:///:memory:')
     echo = True if config.SQL_DEBUG else False
-    engine = create_engine(db, echo=echo, pool_recycle=3600, pool_pre_ping=True,
-                           pool_size=20, max_overflow=10, pool_timeout=30)
+    engine = create_engine(db, echo=echo, pool_recycle=60, pool_pre_ping=True,
+                           pool_size=5, max_overflow=1, pool_timeout=30)
     return engine
 
 
@@ -27,7 +27,8 @@ def get_session(app_global=True):
     if app_global:
         return g._session
     else:
-        Session = scoped_session(sessionmaker(get_engine()))
+        Session = scoped_session(sessionmaker(
+            get_engine(), isolate_level="READ COMMITTED", autocommit=False, autoflush=True))
         return Session()
 
 
