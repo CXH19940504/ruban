@@ -13,7 +13,7 @@ from .models import get_engine
 
 def before_request(*args, **kwargs):
     Session = scoped_session(sessionmaker(
-        bind=get_engine(), isolate_level="READ COMMITTED", autocommit=False, autoflush=True))
+        bind=get_engine(), autocommit=False, autoflush=True))
     g._session = Session()
 
 

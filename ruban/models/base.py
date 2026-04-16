@@ -28,7 +28,7 @@ def get_session(app_global=True):
         return g._session
     else:
         Session = scoped_session(sessionmaker(
-            get_engine(), isolate_level="READ COMMITTED", autocommit=False, autoflush=True))
+            get_engine(), autocommit=False, autoflush=True))
         return Session()
 
 
