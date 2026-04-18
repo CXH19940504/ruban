@@ -8,13 +8,11 @@ from flask import Flask, g, Blueprint
 from sqlalchemy.orm import sessionmaker, scoped_session
 from . import config
 from .common import exce
-from .models import get_engine
+from .models import get_session
 
 
 def before_request(*args, **kwargs):
-    Session = scoped_session(sessionmaker(
-        bind=get_engine(), autocommit=False, autoflush=True))
-    g._session = Session()
+    g._session = get_session()
 
 
 def after_request(response):

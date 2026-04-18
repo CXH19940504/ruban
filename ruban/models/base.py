@@ -23,13 +23,23 @@ def get_engine(db=None):
     return engine
 
 
+# 全局 Session 工厂（只创建一次，避免重复创建导致连接暴涨）
+# 这是关键！原来你每次调用都新建 scoped_session，超级吃连接！
+_GLOBAL_SESSION_FACTORY = scoped_session(
+    sessionmaker(
+        bind=get_engine(),
+        autocommit=False,
+        autoflush=True
+    )
+)
+
+
 def get_session(app_global=True):
     if app_global:
-        return g._session
+        return getattr(g, '_session', _GLOBAL_SESSION_FACTORY())
     else:
-        Session = scoped_session(sessionmaker(
-            get_engine(), autocommit=False, autoflush=True))
-        return Session()
+        session = _GLOBAL_SESSION_FACTORY()
+        return session
 
 
 class BaseModel(DeclarativeBase):
