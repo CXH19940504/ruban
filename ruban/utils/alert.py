@@ -106,7 +106,14 @@ class Condition:
         old_val = old_data[self.target_field]
         new_val = new_data[self.target_field]
         _func = getattr(ConditionType, self.condition_type)
-        return _func(old_val, new_val, self.old_value, self.new_value, self.compare_value)
+        try:
+            return _func(old_val, new_val, self.old_value, self.new_value, self.compare_value)
+        except Exception as err:
+            alert_logger.error(
+                '条件检查异常:%s, %s, %s->%s',
+                repr(err), (self.target_field, self.condition_type, self.old_value, self.new_value),
+                old_val, new_val)
+            return False
 
 
 class AlertRule:
