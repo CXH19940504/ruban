@@ -238,7 +238,7 @@ class AlertTrigger:
                 rows = db_session.query(Webhook).filter_by(is_deleted=0).all()
                 webhook_dict = WebhookMap.get_map(rows)
                 for role in cls._instance.alert_rules.values():
-                    if webhook_dict[role.monitor_status]:
+                    if not role.webhook and webhook_dict[role.monitor_status]:
                         role.webhook = webhook_dict[role.monitor_status].url
 
         return cls._instance
