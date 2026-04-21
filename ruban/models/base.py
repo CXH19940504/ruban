@@ -18,16 +18,23 @@ def get_engine(db=None):
     db = db or getattr(config,
                        'SQLALCHEMY_DATABASE_URI', 'sqlite:///:memory:')
     echo = True if config.SQL_DEBUG else False
-    engine = create_engine(db, echo=echo, pool_recycle=60, pool_pre_ping=True,
-                           pool_size=5, max_overflow=1, pool_timeout=30)
+    engine = create_engine(
+        db, echo=echo, pool_recycle=300, pool_pre_ping=True,
+        pool_size=5, max_overflow=0, pool_timeout=300, pool_use_lifo=True,
+        connect_args={
+            "connect_timeout": 5,
+            "read_timeout": 120,
+            "write_timeout": 120,
+        },)
     return engine
 
 
+_engin = get_engine()
 # 全局 Session 工厂（只创建一次，避免重复创建导致连接暴涨）
 # 这是关键！原来你每次调用都新建 scoped_session，超级吃连接！
 _GLOBAL_SESSION_FACTORY = scoped_session(
     sessionmaker(
-        bind=get_engine(),
+        bind=_engin,
         autocommit=False,
         autoflush=True
     )
