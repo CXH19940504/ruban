@@ -14,7 +14,7 @@ from ruban.models.models import Webhook
 from ruban import config, get_logger, get_session
 
 alert_logger = get_logger(
-    'alert', level=logging.INFO, path=config.LOGGER_PATH, filename='alert')
+    'alert', level=logging.INFO, path=config.LOGGER_PATH, filename='records')
 
 
 class WebhookMap(BaseMap):
