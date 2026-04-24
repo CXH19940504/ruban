@@ -170,7 +170,7 @@ class BaseModel(DeclarativeBase):
             if key == 'not':
                 if isinstance(value, dict):
                     not_filter = cls.format_filter_params(value)
-                    filter_ = [not_(*not_filter)]
+                    filter_ = [not_(*not_filter), *filter_]
                 elif isinstance(value, list):
                     not_filter = []
                     for f in value:
