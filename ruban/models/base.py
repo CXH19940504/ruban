@@ -19,12 +19,12 @@ def get_engine(db=None):
                        'SQLALCHEMY_DATABASE_URI', 'sqlite:///:memory:')
     echo = True if config.SQL_DEBUG else False
     engine = create_engine(
-        db, echo=echo, pool_recycle=300, pool_pre_ping=True,
-        pool_size=5, max_overflow=0, pool_timeout=300, pool_use_lifo=True,
+        db, echo=echo, pool_recycle=60, pool_pre_ping=True,
+        pool_size=5, max_overflow=0, pool_timeout=60, pool_use_lifo=True,
         connect_args={
             "connect_timeout": 5,
-            "read_timeout": 120,
-            "write_timeout": 120,
+            "read_timeout": 60,
+            "write_timeout": 60,
         },)
     return engine
 
@@ -45,7 +45,7 @@ def get_session(app_global=True):
     if app_global:
         return getattr(g, '_session', _GLOBAL_SESSION_FACTORY())
     else:
-        session = _GLOBAL_SESSION_FACTORY()
+        session = _GLOBAL_SESSION_FACTORY
         return session
 
 
