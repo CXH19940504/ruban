@@ -11,7 +11,7 @@ from urllib3.exceptions import ResponseError
 
 from digikey_spider.models import BaseMap
 from ruban.models.models import Webhook
-from ruban import config, get_logger, get_session
+from ruban import config, get_logger, session_manager
 
 alert_logger = get_logger(
     'alert', level=logging.INFO, path=config.LOGGER_PATH, filename='records')
@@ -234,7 +234,7 @@ class AlertTrigger:
                     else:
                         rule_id = split_con[0]
                         cls._instance.alert_rules[rule_id].add_condition(dict(_config[section]))
-            with get_session(False) as db_session:
+            with session_manager() as db_session:
                 rows = db_session.query(Webhook).filter_by(is_deleted=0).all()
                 webhook_dict = WebhookMap.get_map(rows)
                 for role in cls._instance.alert_rules.values():

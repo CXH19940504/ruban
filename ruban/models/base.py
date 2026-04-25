@@ -1,5 +1,7 @@
 import re
 import traceback
+from contextlib import contextmanager
+
 from sqlalchemy import Date, DateTime, Numeric, create_engine, desc, asc, or_, and_, not_, column, inspect
 from sqlalchemy.orm import DeclarativeBase, sessionmaker, scoped_session
 from sqlalchemy.dialects.mysql import insert
@@ -20,7 +22,7 @@ def get_engine(db=None):
     echo = True if config.SQL_DEBUG else False
     engine = create_engine(
         db, echo=echo, pool_recycle=60, pool_pre_ping=True,
-        pool_size=5, max_overflow=0, pool_timeout=60, pool_use_lifo=True,
+        pool_size=10, max_overflow=20, pool_timeout=60, pool_use_lifo=True,
         connect_args={
             "connect_timeout": 5,
             "read_timeout": 60,
@@ -41,12 +43,21 @@ _GLOBAL_SESSION_FACTORY = scoped_session(
 )
 
 
-def get_session(app_global=True):
-    if app_global:
-        return getattr(g, '_session', _GLOBAL_SESSION_FACTORY())
-    else:
-        session = _GLOBAL_SESSION_FACTORY
-        return session
+def get_session():
+    return getattr(g, '_session', _GLOBAL_SESSION_FACTORY())
+
+
+@contextmanager
+def session_manager():
+    db = _GLOBAL_SESSION_FACTORY()
+    try:
+        yield db
+        db.commit()  # 正常 → 自动提交
+    except Exception:
+        db.rollback()  # 异常 → 自动回滚
+        raise
+    finally:
+        db.close()
 
 
 class BaseModel(DeclarativeBase):

@@ -5,7 +5,6 @@ import pkgutil
 import traceback
 
 from flask import Flask, g, Blueprint
-from sqlalchemy.orm import sessionmaker, scoped_session
 from . import config
 from .common import exce
 from .models import get_session
@@ -17,7 +16,7 @@ def before_request(*args, **kwargs):
 
 def after_request(response):
     if g._session:
-        if response.status_code // 100 == 2:
+        if response.status_code // 100 == 2 or response.status_code // 100 == 3:
             g._session.commit()
         else:
             g._session.rollback()
