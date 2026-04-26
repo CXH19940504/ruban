@@ -36,10 +36,16 @@ class ConditionType:
 
     @classmethod
     def match(cls, x0, x1, old_value, new_value, *args):
+        return cls.match_value(x0, old_value) and cls.match_value(x1, new_value)
+
+    @classmethod
+    def not_match(cls, x0, x1, old_value, new_value, *args):
         res = True
         if old_value is not None:
-            res = cls.match_value(x0, old_value)
-        return res and cls.match_value(x1, new_value)
+            res = not cls.match_value(x0, old_value)
+        if new_value is not None:
+            res = res and not cls.match_value(x1, new_value)
+        return res
 
     @classmethod
     def change_from_to(cls, x0, x1, old_value, new_value, *args):
