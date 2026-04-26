@@ -57,7 +57,15 @@ def session_manager():
         db.rollback()  # 异常 → 自动回滚
         raise
     finally:
-        db.close()
+        _GLOBAL_SESSION_FACTORY.remove()
+
+
+def with_db_session(func):
+    def wrapper(self, *args, **kwargs):
+        with session_manager() as db_session:
+            self._session = db_session
+            return func(self, *args, **kwargs)
+    return wrapper
 
 
 class BaseModel(DeclarativeBase):

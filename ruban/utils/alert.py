@@ -130,6 +130,7 @@ class AlertRule:
         self.name = conf["name"].strip()  # 规则名称
         self.description = conf["description"].strip()  # 告警描述
         self.webhook = conf.get("webhook", '').strip()  # webhook
+        self.queue = conf.get("queue", 'alert').strip()  # 告警队列
         self.monitor_status = int(conf["monitor_status"].strip())  # 告警类型
         self.conditions = []  # 条件类型
         self.add_condition(conf)
