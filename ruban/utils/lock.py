@@ -16,13 +16,15 @@ redis_client = redis.from_url(
 
 
 class RedisDistributedLock:
-    def __init__(self, client: redis.Redis, lock_key: str, expire: int = 5):
+    def __init__(self, client: redis.Redis, lock_key: str, expire: int = 5, blocked: bool = True):
         self.redis = client
         self.lock_key = lock_key
         self.expire = expire  # 锁过期时间（秒），防止死锁
         self.lock_value = str(uuid.uuid4())  # 唯一ID，防止误删别人的锁
+        self._blocked = blocked
+        self.acquired = False
 
-    def acquire(self, blocking: bool = True, timeout: int = 10):
+    def acquire(self, blocked: bool, timeout: int = 1):
         """获取锁"""
         end = time.time() + timeout
         while True:
@@ -35,7 +37,7 @@ class RedisDistributedLock:
             ):
                 return True
 
-            if not blocking or time.time() > end:
+            if not blocked or time.time() > end:
                 return False
             time.sleep(0.05)
 
@@ -52,7 +54,7 @@ class RedisDistributedLock:
 
     def __enter__(self):
         """支持 with 语法"""
-        self.acquire()
+        self.acquired = self.acquire(self._blocked)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -62,8 +64,8 @@ class RedisDistributedLock:
 
 # 封装成你原来的 api_lock 格式
 class RedisLock:
-    def get_lock(self, key=-1):
-        return RedisDistributedLock(redis_client, f"lock:{key}", expire=5)
+    def get_lock(self, key=-1, expire: int = 10, blocked: bool = True):
+        return RedisDistributedLock(redis_client, f"lock:{key}", expire=expire, blocked=blocked)
 
 
 redis_lock = RedisLock()
