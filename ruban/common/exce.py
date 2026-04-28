@@ -97,7 +97,7 @@ class InterUnknownException(RestException):
 
 
 def _is_api_request():
-    """判断是否为 /api/v1 接口请求（公共判断）"""
+    """判断是否为 /api/ 接口请求（公共判断）"""
     return request.path.startswith('/api/')
 
 

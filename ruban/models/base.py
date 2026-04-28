@@ -44,7 +44,16 @@ _GLOBAL_SESSION_FACTORY = scoped_session(
 
 
 def get_session():
-    return getattr(g, '_session', _GLOBAL_SESSION_FACTORY())
+    """
+    安全获取session：每个请求一个，全程复用，不会重复创建
+    """
+    if not hasattr(g, '_session'):
+        g._session = _GLOBAL_SESSION_FACTORY()
+    return g._session
+
+
+def remove_session():
+    _GLOBAL_SESSION_FACTORY.remove()
 
 
 @contextmanager

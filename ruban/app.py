@@ -7,11 +7,11 @@ import traceback
 from flask import Flask, g, Blueprint, session, render_template
 from . import config
 from .common import exce
-from .models import get_session
+from .models.base import remove_session
 
 
 def before_request(*args, **kwargs):
-    g._session = get_session()
+    pass
 
 
 def after_request(response):
@@ -29,7 +29,7 @@ def shutdown_session(exception=None):
     """
     session = getattr(g, '_session', None)
     if session:
-        session.close()
+        remove_session()
 
 
 def register_site(app=None):
