@@ -8,8 +8,9 @@
 
 import traceback
 import http.client as httplib
-from flask import jsonify
+from flask import jsonify, request, session, redirect
 from werkzeug.exceptions import HTTPException
+
 from ruban.common.exception import RestException, register_exception
 from ruban.utils.log import get_logger
 
@@ -95,17 +96,33 @@ class InterUnknownException(RestException):
     pass
 
 
+def _is_api_request():
+    """判断是否为 /api/v1 接口请求（公共判断）"""
+    return request.path.startswith('/api/')
+
+
+def _redirect_error_page(msg, http_code=500):
+    """页面请求：重定向到错误页（公共跳转）"""
+    session['error_msg'] = msg
+    session['error_code'] = http_code
+    return redirect('/error')
+
+
 def make_error_response(code=ERR_UNKNOWN, msg='Undefined Exception',
-                        detail=None, request=None,
-                        http_code=httplib.INTERNAL_SERVER_ERROR):
-    response = jsonify({
-        'code': code,
-        'msg': msg,
-        'request': request,
-        'detail': detail
-    })
-    response.status_code = http_code
-    return response
+                        detail=None, http_code=httplib.INTERNAL_SERVER_ERROR):
+    if _is_api_request():
+        # API 请求：返回标准JSON
+        response = jsonify({
+            'code': code,
+            'msg': msg,
+            'request': request.path,
+            'detail': detail
+        })
+        response.status_code = http_code
+        return response
+    else:
+        # 页面请求：跳转错误页
+        return _redirect_error_page(msg, http_code)
 
 
 def init_exceptions(app):

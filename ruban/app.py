@@ -4,7 +4,7 @@ import importlib
 import pkgutil
 import traceback
 
-from flask import Flask, g, Blueprint
+from flask import Flask, g, Blueprint, session, render_template
 from . import config
 from .common import exce
 from .models import get_session
@@ -49,6 +49,7 @@ def register_site(app=None):
 
 
 def init_blueprints(app, packages):
+    app.register_blueprint(error_view)
     for _name in packages:
         _package = __import__(_name, globals(), locals(), ['object'], 0)
         for importer, modname, ispkg in pkgutil.iter_modules(_package.__path__):
@@ -66,6 +67,19 @@ def init_blueprints(app, packages):
                         app.register_blueprint(attr)
             except Exception as err:
                 print("error:%r, traceback:%r", err, traceback.print_exc())
+
+
+error_view = Blueprint('error', __name__)
+
+
+@error_view.route('/error', methods=['GET', 'POST'])
+def error_page():
+    msg = session.pop('error_msg', '服务器崩溃了 T_T')
+    status_code = session.pop('error_code', 500)
+    err_msgs = []
+    if msg:
+        err_msgs = msg.split('：')[-1].split('\n')
+    return render_template('error.html', http_code=status_code, err_msgs=err_msgs)
 
 
 ruban_app = register_site()

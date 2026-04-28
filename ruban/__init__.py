@@ -17,4 +17,4 @@ logger = get_logger(__name__, level=log_level, path=path, filename=filename)
 
 __all__ = [
     "config", "logger", "get_logger", "ExcelHandler", "redis_lock", "redis_client",
-    "exce", "get_session", "session_manager", "with_db_session", "ruban_app"]
+    "exce", "get_session", "session_manager", "with_db_session", "app"]
