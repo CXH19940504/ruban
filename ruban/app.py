@@ -15,7 +15,7 @@ def before_request(*args, **kwargs):
 
 
 def after_request(response):
-    if g._session:
+    if getattr(g, '_session', None):
         if response.status_code // 100 == 2 or response.status_code // 100 == 3:
             g._session.commit()
         else:
