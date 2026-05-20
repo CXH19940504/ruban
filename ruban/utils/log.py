@@ -17,7 +17,7 @@ from colorama import Fore, Back, Style
 from collections import OrderedDict
 
 from .util import first_or_none, get_program_name, ensure_dir
-from ruban.config import APP_NAME
+from ruban.config import APP_NAME, FILENAME
 
 
 # 默认日志格式
@@ -297,9 +297,10 @@ class FlaskLogFilter(logging.Filter):
 flask_log_filter = FlaskLogFilter()
 
 
-def get_logger(logger, level=logging.INFO, path=None, filename=None):
+def get_logger(logger, level=logging.INFO, path=None, filename=FILENAME):
     lm = LoggerMaintainer.create(logger)
-    lm.logger.addFilter(flask_log_filter)
+    if filename.endswith('app'):
+        lm.logger.addFilter(flask_log_filter)
     lm.logger.propagate = False
     lm.basic_setup(level=level, format=WEB_LOG_FORMAT, path=path,
                    filename=filename)
